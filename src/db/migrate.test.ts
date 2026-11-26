@@ -30,7 +30,7 @@ function tableNames(): string[] {
 function insertProduct(id: string, barcode: string | null, priceCents = 1000): void {
   db.run(
     'INSERT INTO products (id, barcode, name, price_cents, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
-    [id, barcode, `Producto ${id}`, priceCents, NOW, NOW]
+    [id, barcode, `Product ${id}`, priceCents, NOW, NOW]
   );
 }
 
@@ -64,8 +64,8 @@ describe('migrate', () => {
   });
 
   it('just apply the migrations that are missing', async () => {
-    const v1: Migration = { version: 1, name: 'uno', sql: 'CREATE TABLE a (id INTEGER);' };
-    const v2: Migration = { version: 2, name: 'dos', sql: 'CREATE TABLE b (id INTEGER);' };
+    const v1: Migration = { version: 1, name: 'one', sql: 'CREATE TABLE a (id INTEGER);' };
+    const v2: Migration = { version: 2, name: 'two', sql: 'CREATE TABLE b (id INTEGER);' };
 
     await migrate(db, [v1]);
     expect(tableNames()).toEqual(['a']);
@@ -76,10 +76,10 @@ describe('migrate', () => {
   });
 
   it('if a migration fail, rollback and keep previous version', async () => {
-    const v1: Migration = { version: 1, name: 'uno', sql: 'CREATE TABLE a (id INTEGER);' };
+    const v1: Migration = { version: 1, name: 'one', sql: 'CREATE TABLE a (id INTEGER);' };
     const v2Rota: Migration = {
       version: 2,
-      name: 'rota',
+      name: 'fail',
       sql: 'CREATE TABLE b (id INTEGER); INSERT INTO tabla_que_no_existe VALUES (1);',
     };
 
@@ -92,12 +92,12 @@ describe('migrate', () => {
   it('reject DB newest than the app version', async () => {
     db.run('PRAGMA user_version = 99');
 
-    await expect(migrate(db)).rejects.toThrow(/DB is a newest version/);
+    await expect(migrate(db)).rejects.toThrow(/newer than this app supports/);
   });
 
   it('reject migration with incorrect version', async () => {
-    const v1: Migration = { version: 1, name: 'uno', sql: 'CREATE TABLE a (id INTEGER);' };
-    const v3: Migration = { version: 3, name: 'tres', sql: 'CREATE TABLE c (id INTEGER);' };
+    const v1: Migration = { version: 1, name: 'one', sql: 'CREATE TABLE a (id INTEGER);' };
+    const v3: Migration = { version: 3, name: 'three', sql: 'CREATE TABLE c (id INTEGER);' };
 
     await expect(migrate(db, [v1, v3])).rejects.toThrow(/consecutive/);
     expect(userVersion()).toBe(0);
@@ -133,7 +133,7 @@ describe('schema v1', () => {
     expect(() =>
       db.run(
         'INSERT INTO sale_items (id, sale_id, description, unit_price_cents, quantity_milli, line_total_cents) VALUES (?, ?, ?, ?, ?, ?)',
-        ['i1', 's1', 'Jamón', 18000, 0, 0]
+        ['i1', 's1', 'Jam', 18000, 0, 0]
       )
     ).toThrow();
   });
@@ -143,7 +143,7 @@ describe('schema v1', () => {
 
     db.run(
       'INSERT INTO sale_items (id, sale_id, product_id, description, unit_price_cents, quantity_milli, line_total_cents) VALUES (?, ?, NULL, ?, ?, ?, ?)',
-      ['i1', 's1', 'Jamón por kilo', 18000, 350, 6300]
+      ['i1', 's1', 'Jam per kilo', 18000, 350, 6300]
     );
 
     expect(db.all('SELECT quantity_milli FROM sale_items')).toEqual([{ quantity_milli: 350 }]);
@@ -154,7 +154,7 @@ describe('schema v1', () => {
     insertSale('s1');
     db.run(
       'INSERT INTO sale_items (id, sale_id, product_id, description, unit_price_cents, quantity_milli, line_total_cents) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      ['i1', 's1', 'p1', 'Producto p1', 1000, 1000, 1000]
+      ['i1', 's1', 'p1', 'Product p1', 1000, 1000, 1000]
     );
     db.run(
       'INSERT INTO stock_movements (id, product_id, sale_id, delta_milli, reason, occurred_at) VALUES (?, ?, ?, ?, ?, ?)',

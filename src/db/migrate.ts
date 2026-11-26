@@ -11,7 +11,7 @@ function assertValidMigrations(migrations: readonly Migration[]): void {
     const expected = index + 1;
     if (migration.version !== expected) {
       throw new Error(
-        `The migrations should be consecutive from 1: is expected version ${expected} and found ${migration.version}.`
+        `Migrations must be consecutive starting at 1: expected version ${expected} but found ${migration.version}.`
       );
     }
   });
@@ -28,7 +28,7 @@ export async function migrate(
 
   if (current > latest) {
     throw new Error(
-      `DB is a newest version (${current}) for this app (${latest}). Update app.`
+      `The database schema version (${current}) is newer than this app supports (${latest}). Please update the app.`
     );
   }
 

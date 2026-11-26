@@ -51,7 +51,6 @@ export class TestDb implements MigrationDb {
     }
   }
 
-  /** Ejecuta una sentencia con parámetros (INSERT, UPDATE, DELETE). */
   run(source: string, params: (string | number | null)[] = []): void {
     this.db.run(source, params);
   }
